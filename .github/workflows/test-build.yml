@@ -1,0 +1,12 @@
+name: test
+on: [push]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Install Bazelisk
+        uses: holvonix-open/setup-bazelisk@v0.6.1
+      - name: Test
+        run: bazel test '...' --test_output=errors --test_verbose_timeout_warnings

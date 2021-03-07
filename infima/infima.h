@@ -12,10 +12,10 @@ public:
   using Coordinate = std::vector<std::string>;
 
   Lattice(std::vector<std::string> dimension_names)
-    : dimension_names_(dimension_names) {
-      for (std::string dimension : dimension_names) {
-        values_by_dimension_[dimension] = std::vector<std::string>();
-      }
+      : dimension_names_(dimension_names) {
+    for (std::string dimension : dimension_names) {
+      values_by_dimension_[dimension] = std::vector<std::string>();
+    }
   }
 
   void add_endpoints_for_sector(Coordinate sector_coordinates, std::vector<Type> endpoints) {
@@ -73,6 +73,21 @@ public:
     }
   }
 
+  std::vector<Coordinate> get_coordinates() {
+    std::vector<Coordinate> v;
+    for( auto it = endpoints_by_coordinate_.begin(); it != endpoints_by_coordinate_.end(); ++it ) {
+        v.push_back(it->first);
+    }
+    return v;
+  }
+
+  std::vector<Type> get_endpoints() {
+    std::vector<Type> v;
+    for( auto it = endpoints_by_coordinate_.begin(); it != endpoints_by_coordinate_.end(); ++it )
+      v.insert(v.end(), it->second.begin(), it->second.end());
+    return v;
+  }
+
   const std::vector<std::string> dimension_names_;
   std::map<std::string, std::vector<std::string> > values_by_dimension_;
   std::map<Coordinate, std::vector<Type>> endpoints_by_coordinate_;
@@ -115,17 +130,13 @@ public:
       }
     }
 
-    for (int i = 0; i < minimum_dimension_size; i++) {
-      std::vector<std::string> coordinates;
-
-      for (uint j = 0; j < lattice.get_dimension_names().size(); j++) {
-          coordinates.push_back(shuffled_dimension_values[j][0]);
-          shuffled_dimension_values[j].erase(shuffled_dimension_values[j].begin());
-      }
+    for (auto coordinates : lattice.get_coordinates()) {
       auto available_endpoints = lattice.get_endpoints_for_sector(coordinates);
-      std::shuffle(available_endpoints.begin(), available_endpoints.end(), g);
-      std::vector<Type> returned_endpoints(available_endpoints.begin(), available_endpoints.begin() + endpoints_per_cell);
-      chosen->add_endpoints_for_sector(coordinates, returned_endpoints);
+      if (available_endpoints.size()) {
+        std::shuffle(available_endpoints.begin(), available_endpoints.end(), g);
+        std::vector<Type> returned_endpoints(available_endpoints.begin(), available_endpoints.begin() + std::min(endpoints_per_cell, available_endpoints.size()));
+        chosen->add_endpoints_for_sector(coordinates, returned_endpoints);
+      }
     }
 
     return chosen;
