@@ -6,14 +6,6 @@
 #include <random>
 #include <climits>
 
-
-int test() PURE;
-int test() {
-  std::vector<int> x;
-  x.push_back(1);
-  return x[0];
-}
-
 template <typename Type>
 class Lattice {
 public:
@@ -26,17 +18,17 @@ public:
       }
   }
 
-
   void add_endpoints_for_sector(Coordinate sector_coordinates, std::vector<Type> endpoints) {
-    bool pre_exists = endpoints_by_coordinate_[sector_coordinates].size();
-    // Add endpoints
-    for (Type endpoint : endpoints) {
-      endpoints_by_coordinate_[sector_coordinates].push_back(endpoint); // optimize
-    }
-    // Add coordinate value
-    if (!pre_exists)
+    // Add coordinate value if it's not already present
+    if(!endpoints_by_coordinate_[sector_coordinates].size())
       for (uint i = 0; i < dimension_names_.size(); i++)
         values_by_dimension_[dimension_names_[i]].push_back(sector_coordinates[i]);
+
+    endpoints_by_coordinate_[sector_coordinates].insert(
+      endpoints_by_coordinate_[sector_coordinates].end(),
+      endpoints.begin(),
+      endpoints.end()
+    );
   }
 
   std::vector<std::string> get_dimension_names() {
@@ -91,7 +83,7 @@ class ShuffleSharder {
 public:
   ShuffleSharder(uint64_t seed) : seed_(seed) { }
 
-  Lattice<Type>* shuffleShard(Lattice<Type> lattice, uint64_t hash, int endpoints_per_cell) {
+  Lattice<Type>* shuffleShard(Lattice<Type> lattice, uint64_t hash, unsigned long endpoints_per_cell) {
     Lattice<Type> * chosen = new Lattice<Type>(lattice.get_dimension_names());
 
     std::vector<std::vector<std::string>> shuffled_dimension_values;
@@ -110,7 +102,7 @@ public:
         std::vector<std::string> c{dimension_value};
         auto available_endpoints = lattice.get_endpoints_for_sector(c);
         std::shuffle(available_endpoints.begin(), available_endpoints.end(), g);
-        std::vector<Type> returned_endpoints(available_endpoints.begin(), available_endpoints.begin() + endpoints_per_cell);
+        std::vector<Type> returned_endpoints(available_endpoints.begin(), available_endpoints.begin() + std::min(endpoints_per_cell, available_endpoints.size()));
         chosen->add_endpoints_for_sector(c, returned_endpoints);
       }
       return chosen;
@@ -141,48 +133,3 @@ public:
 
   const uint64_t seed_;
 };
-// public Lattice<T> shuffleShard(Lattice<T> lattice, byte[] identifier, int endpointsPerCell)
-//         throws NoSuchAlgorithmException {
-//     Lattice<T> chosen = new Lattice<T>(lattice.getDimensionNames());
-
-int main() {
-    std::cout << "Start" << std::endl;
-    std::vector<std::string> x{ "AZ", "region"};
-    Lattice<int> l = Lattice<int>(x);
-    // Lattice<int>::Coordinate c{ "1", "us-east"};
-    //std::vector<int> e{1,2,3};
-    l.add_endpoints_for_sector(Lattice<int>::Coordinate{"1", "us-east"}, std::vector<int>{1,2,3,4,5});
-    l.add_endpoints_for_sector(Lattice<int>::Coordinate{"1", "us-east"}, std::vector<int>{0});
-    l.add_endpoints_for_sector(Lattice<int>::Coordinate{"1", "us-west"}, std::vector<int>{6,7,8,9});
-    l.add_endpoints_for_sector(Lattice<int>::Coordinate{"2", "us-east"}, std::vector<int>{10,11,12,13});
-    l.add_endpoints_for_sector(Lattice<int>::Coordinate{"2", "us-west"}, std::vector<int>{14,15,16,17});
-    // for (auto it = l.endpoints_by_coordinate_.begin(); it != l.endpoints_by_coordinate_.end(); it++) {
-    //   std::cout << "S" << std::endl;
-    //   for (auto f : it->first) {
-    //     std::cout << "Endpoint: " << f << std::endl;
-    //   }
-    //   for (auto f : it->second) {
-    //     std::cout << f << std::endl;
-    //   }
-    // }
-    l.print_values_by_dimension();
-    l.print_endpoints_by_coordinate();
-
-
-    ShuffleSharder<int> s = ShuffleSharder<int>(2);
-
-    std::cout << std::endl << std::endl;
-    auto final = s.shuffleShard(l, 0, 2);
-    std::cout << std::endl << std::endl;
-    for (auto it = final->endpoints_by_coordinate_.begin(); it != final->endpoints_by_coordinate_.end(); it++) {
-      std::cout << "S" << std::endl;
-      for (auto f : it->first) {
-        std::cout << "Endpoint: " << f << std::endl;
-      }
-      for (auto f : it->second) {
-        std::cout << f << std::endl;
-      }
-    }
-    test();
-    return 0;
-}
