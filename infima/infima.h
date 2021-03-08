@@ -1,7 +1,6 @@
 #include <map>
 #include <iostream>
 #include <vector>
-#include <set>
 #include <algorithm>
 #include <random>
 #include <climits>
@@ -16,6 +15,13 @@ public:
     for (std::string dimension : dimension_names) {
       values_by_dimension_[dimension] = std::vector<std::string>();
     }
+  }
+
+  void remove_endpoints_for_sector(Coordinate sector_coordinates, std::vector<Type> endpoints) {
+    auto& ep = endpoints_by_coordinate_[sector_coordinates];
+
+    for (auto& endpoint : endpoints)
+      ep.erase(std::remove(ep.begin(), ep.end(), endpoint), ep.end());
   }
 
   void add_endpoints_for_sector(Coordinate sector_coordinates, std::vector<Type> endpoints) {
