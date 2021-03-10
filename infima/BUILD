@@ -1,6 +1,7 @@
+exports_files(["infima.h"], ["//visibility:public"])
+
 cc_library(
     name="infima",
-    hdrs=glob(["**/*.h"]),
-    srcs=glob(["**/*.cc"]),
+    hdrs=["infima.h"],
     visibility = ["//visibility:public"],
 )
