@@ -10,3 +10,21 @@ jobs:
         uses: holvonix-open/setup-bazelisk@v0.6.1
       - name: Test
         run: bazel test '...' --test_output=errors --test_verbose_timeout_warnings
+  fitness-performance:
+    runs-on: ubuntu-latest
+    container:
+      image: l.gcr.io/google/bazel:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Build
+        run: bazel build ... --compilation_mode=dbg
+      - name: Gdb
+        run: apt install -y gdb && gdb bazel-bin/performance/Performance --command=performance/gdbtest > /dev/null
+      - name: Compare
+        run: |
+          FITNESS=$(cat gdb.txt | awk  '{print $3}')
+          CURRENT=$(cat performance/fitness)
+          [ "$FITNESS" -gt "$CURRENT" ] && echo "Performance decreased ($CURRENT -> $FITNESS)" && exit 1
+          [ "$FITNESS" -eq "$CURRENT" ] && echo "Performance has stayed the same" && exit 0
+          echo "Performance has gotten better ($CURRENT -> $FITNESS)."

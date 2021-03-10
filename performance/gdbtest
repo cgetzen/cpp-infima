@@ -1,0 +1,10 @@
+start
+set pagination off
+set $count = 0
+while 0 != $_isvoid ($_exitcode)
+  stepi
+  set $count++
+end
+set logging on
+print $count
+q
