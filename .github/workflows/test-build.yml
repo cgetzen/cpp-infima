@@ -9,18 +9,18 @@ jobs:
       - name: Install Bazelisk
         uses: holvonix-open/setup-bazelisk@v0.6.1
       - name: Test
-        run: bazel test '...' --test_output=errors --test_verbose_timeout_warnings
+        run: bazel test '...' --test_output=errors --test_verbose_timeout_warnings --cxxopt='-std=c++17'
   fitness-performance:
     runs-on: ubuntu-latest
     container:
-      image: l.gcr.io/google/bazel:latest
+      image: mattinsler/bazelisk
     steps:
       - name: Checkout
         uses: actions/checkout@v2
       - name: Build
-        run: bazel build ... --compilation_mode=dbg
+        run: bazel build ... --compilation_mode=dbg --cxxopt='-std=c++17'
       - name: Gdb
-        run: apt install -y gdb && gdb bazel-bin/performance/Performance --command=performance/gdbtest > /dev/null
+        run: apt update && apt install -y gdb && gdb bazel-bin/performance/Performance --command=performance/gdbtest > /dev/null
       - name: Compare
         run: |
           FITNESS=$(cat gdb.txt | awk  '{print $3}')
